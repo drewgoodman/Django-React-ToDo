@@ -21,13 +21,23 @@ class App extends Component {
 
   componentDidMount() {
     this.fetchTasks();
+
   }
 
   fetchTasks() {
     console.log("Fetching...");
+    fetch('http://127.0.0.1:8000/api/task-list/')
+    .then(response => response.json())
+    .then(data => 
+      this.setState({
+        todoList: data
+      })
+      )
   }
 
   render() {
+      var tasks = this.state.todoList
+
       return (
           <div className="container">
             <div id="task-container">
@@ -44,7 +54,13 @@ class App extends Component {
                 </form>
               </div>
               <div id="list-wrapper">
-
+                {tasks.map(function(task, index) {
+                  return (
+                    <div key={index} className="task-wrapper flex-wrapper">
+                      <span>{task.title}</span>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
