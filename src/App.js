@@ -23,6 +23,7 @@ class App extends Component {
 
     this.deleteItem = this.deleteItem.bind(this);
     this.startEdit = this.startEdit.bind(this);
+    this.strikeUnstrike = this.strikeUnstrike.bind(this);
   }
 
   componentDidMount() {
@@ -114,8 +115,24 @@ class App extends Component {
       }
     }).then(response=> {
       this.fetchTasks()
+    });
+  }
 
-    })
+  strikeUnstrike(task) {
+    task.completed = !task.completed;
+    const csrftoken = this.getCookie('csrftoken');
+    const url = `http://127.0.0.1:8000/api/task-update/${task.id}/`;
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+        'X-CSRFToken': csrftoken,
+      },
+      body: JSON.stringify({'completed':task.completed, 'title':task.title})
+    }).then(response=> {
+      this.fetchTasks()
+    });
+
   }
 
   render() {
@@ -141,8 +158,13 @@ class App extends Component {
             {tasks.map(function (task, index) {
               return (
                 <div key={index} className="task-wrapper flex-wrapper">
-                  <div style={{ flex: 7 }}>
-                    <span>{task.title}</span>
+                  <div onClick={()=> self.strikeUnstrike(task)} style={{ flex: 7 }}>
+                    {
+                      task.completed ?
+                      <strike>{task.title}</strike>
+                      :
+                      <span>{task.title}</span>
+                    }
                   </div>
                   <div style={{ flex: 1 }}>
                     <button onClick={()=> self.startEdit(task)} className="btn btn-sm btn-outline-info">Edit</button>
