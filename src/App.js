@@ -20,6 +20,9 @@ class App extends Component {
     this.getCookie = this.getCookie.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+
+    this.deleteItem = this.deleteItem.bind(this);
+    this.startEdit = this.startEdit.bind(this);
   }
 
   componentDidMount() {
@@ -44,7 +47,6 @@ class App extends Component {
   }
 
   fetchTasks() {
-    console.log("Fetching...");
     fetch('http://127.0.0.1:8000/api/task-list/')
       .then(response => response.json())
       .then(data =>
@@ -64,8 +66,6 @@ class App extends Component {
     })
 
   }
-
-
 
   handleSubmit(e) {
     e.preventDefault();
@@ -103,6 +103,21 @@ class App extends Component {
     })
   }
 
+  deleteItem(task) {
+    const csrftoken = this.getCookie('csrftoken');
+    const url = `http://127.0.0.1:8000/api/task-delete/${task.id}/`;
+    fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'Content-type': 'application/json',
+        'X-CSRFToken': csrftoken,
+      }
+    }).then(response=> {
+      this.fetchTasks()
+
+    })
+  }
+
   render() {
     var tasks = this.state.todoList
     const self = this;
@@ -133,7 +148,7 @@ class App extends Component {
                     <button onClick={()=> self.startEdit(task)} className="btn btn-sm btn-outline-info">Edit</button>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <button className="btn btn-sm btn-outline-dark delete">-</button>
+                    <button onClick={()=> self.deleteItem(task)} className="btn btn-sm btn-outline-dark delete">-</button>
                   </div>
                 </div>
               )
