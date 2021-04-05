@@ -17,6 +17,7 @@ class App extends Component {
     }
 
     this.fetchTasks = this.fetchTasks.bind(this);
+    this.getCookie = this.getCookie.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
@@ -24,6 +25,22 @@ class App extends Component {
   componentDidMount() {
     this.fetchTasks();
 
+  }
+
+  getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
   }
 
   fetchTasks() {
@@ -38,29 +55,34 @@ class App extends Component {
   }
 
   handleChange(e) {
-    const name = e.target.name;
     const value = e.target.value;
     this.setState({
-      activeItem:{
+      activeItem: {
         ...this.state.activeItem,
-        title:value
+        title: value
       }
     })
-    console.log(name, value);
 
   }
 
+
+
   handleSubmit(e) {
     e.preventDefault();
-    console.log(this.state.activeItem);
 
-    const url = 'http://127.0.0.1:8000/api/task-create/';
+    const csrftoken = this.getCookie('csrftoken');
+
+    var url = 'http://127.0.0.1:8000/api/task-create/';
+    if(this.state.editing) {
+      url = `http://127.0.0.1:8000/api/task-update/${this.state.activeItem.id}/`;
+    }
     fetch(url, {
-      method:'POST',
-      headers:{
-        'Content-type':'application/json',
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+        'X-CSRFToken': csrftoken,
       },
-      body:JSON.stringify(this.state.activeItem)
+      body: JSON.stringify(this.state.activeItem)
     }).then(response => {
       this.fetchTasks();
       this.setState({
@@ -68,13 +90,22 @@ class App extends Component {
           id: null,
           title: '',
           completed: false,
-        }
+        },
+        editing:false,
       })
     }).catch(error => console.error("ERROR: ", error))
   }
 
+  startEdit(task) {
+    this.setState({
+      activeItem: task,
+      editing: true,
+    })
+  }
+
   render() {
     var tasks = this.state.todoList
+    const self = this;
 
     return (
       <div className="container">
@@ -83,7 +114,7 @@ class App extends Component {
             <form onSubmit={this.handleSubmit} id="form">
               <div className="flex-wrapper">
                 <div style={{ flex: 6 }}>
-                  <input onChange={this.handleChange} className="form-control" id="title" type="text" name="title" placeholder="Add task..."></input>
+                  <input onChange={this.handleChange} className="form-control" id="title" value={this.state.activeItem.title} type="text" name="title" placeholder="Add task..."></input>
                 </div>
                 <div style={{ flex: 1 }}>
                   <input className="btn btn-warning" id="submit" type="submit" name="Add" />
@@ -99,7 +130,7 @@ class App extends Component {
                     <span>{task.title}</span>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <button className="btn btn-sm btn-outline-info">Edit</button>
+                    <button onClick={()=> self.startEdit(task)} className="btn btn-sm btn-outline-info">Edit</button>
                   </div>
                   <div style={{ flex: 1 }}>
                     <button className="btn btn-sm btn-outline-dark delete">-</button>
