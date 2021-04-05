@@ -4,11 +4,27 @@ import './App.css';
 
 class App extends Component {
   constructor(props) {
-      super(props)
+      super(props);
 
       this.state = {
-          
+          todoList: [],
+          activeItem: {
+            id: null,
+            title: '',
+            completed: false,
+          },
+          editing: false,
       }
+
+      this.fetchTasks = this.fetchTasks.bind(this)
+  }
+
+  componentDidMount() {
+    this.fetchTasks();
+  }
+
+  fetchTasks() {
+    console.log("Fetching...");
   }
 
   render() {
